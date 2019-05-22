@@ -36,3 +36,77 @@ dat$Sepal.Length_imp <- predict(plsFit, newdata = dat)
 
 head(dat)
 
+######(new)
+
+###demonstration for a continuous variable with missing data###
+
+library(caret)
+library(simputation)
+library(ggplot2)
+
+dat <- iris
+dat[1:3,1]  <- NA
+head(dat,10)
+
+inTrain <- createDataPartition(
+    y = dat$Sepal.Length[is.na(dat$Sepal.Length)==F],p = .75,list = FALSE
+  )
+
+training <- dat[ inTrain,]
+testing  <- dat[-inTrain,]
+
+plsFit <- train(
+    Sepal.Length ~ .,
+    data = training,
+    method = "penalized",
+    preProc = c("center", "scale"), 
+    tuneLength = 15,
+    na.action = na.omit
+  )
+
+dat$imp <- predict(plsFit, newdata = dat)
+
+#assessing model fit - quality measures
+# if the imputed variable is continuous:
+postResample(pred = dat$imp[is.na(dat$Sepal.Length)==F], obs = dat$Sepal.Length[is.na(dat$Sepal.Length)==F])
+ # root mean squared error (RMSE)
+ # simple R2
+ # mean absolute error (MAE) 
+
+#overwrite the predicted data we have measured values for
+dat$imp[is.na(dat$Sepal.Length)==F] <- dat$Sepal.Length[is.na(dat$Sepal.Length)==F]
+
+head(dat)
+
+###demonstration for categorical variable with missing data###
+
+dat <- iris
+dat[c(1,38,100),5]  <- NA
+head(dat,10)
+
+dat$Species
+
+inTrain <- createDataPartition(
+  y = dat$Species[is.na(dat$Species)==F],p = .75,list = FALSE
+)
+
+training <- dat[ inTrain,]
+testing  <- dat[-inTrain,]
+
+plsFit <- train(
+  Species ~ .,
+  data = training,
+  method = "naive_bayes",
+  preProc = c("center", "scale"), 
+  tuneLength = 15,
+  na.action = na.omit
+)
+
+dat$imp <- predict(plsFit, newdata = dat)
+
+#confusion matrix - quality measures
+confusionMatrix(data = dat$Species, reference = dat$imp)
+
+#overwrite the predicted data we have measured values for
+dat$imp[is.na(dat$Species)==F] <- at$Species[is.na(dat$Species)==F]
+
