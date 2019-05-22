@@ -15,12 +15,11 @@ ipak <- function(pkg) {
 }
 
 ## This will install all the libraries:
-ipak(c("caret"))
+ipak("caret")
 
 
 
-
-## A short introduction to ceret (...)
+## A short introduction to caret (...)
 library(caret)
 library(mlbench)
 data(Sonar)
@@ -39,6 +38,48 @@ inTrain <- createDataPartition(
 ## The output is a set of integers for the rows of Sonar
 ## that belong in the training set.
 str(inTrain)
+
+training <- Sonar[ inTrain,]
+testing  <- Sonar[-inTrain,]
+
+nrow(training)
+nrow(testing)
+
+ctrl <- trainControl(
+  method = "repeatedcv", 
+  repeats = 3,
+  classProbs = TRUE, 
+  summaryFunction = twoClassSummary
+)
+
+set.seed(123)
+plsFit <- train(
+  Class ~ .,
+  data = training,
+  method = "rpart",
+  preProc = c("center", "scale"),
+  tuneLength = 15,
+  trControl = ctrl,
+  metric = "ROC"
+)
+plsFit
+
+ggplot(plsFit)
+
+
+plsClasses <- predict(plsFit, newdata = testing)
+str(plsClasses)
+#>  Factor w/ 2 levels "M","R": 2 1 1 2 1 2 2 2 2 2 ...
+plsProbs <- predict(plsFit, newdata = testing, type = "prob")
+head(plsProbs)
+
+confusionMatrix(data = plsClasses, testing$Class)
+
+
+
+
+
+
 
 
 
