@@ -3,12 +3,13 @@ MLimputationNum <- function(data,
                             formula,
                             training_size = .8,
                             method = "pls",
-                            tuneLength = 15) {
-  
+                            tuneLength = 15,
+                            replace = T) {
+
   # calculate percentage of missing values
   m.perc <- sum(complete.cases(data)/nrow(data))
   # display worning if over some limit?
-  warning(paste0(m.perc*100,"% of outcome variable is missing!"))
+  warning(paste0((1-m.perc)*100,"% of outcome variable is missing!"))
   # get missing values index
   missing.idx <- is.na(y)
   # split into missing and complete cases
@@ -37,20 +38,14 @@ MLimputationNum <- function(data,
   } else {
     print(confusionMatrix(data = y[!missing.idx][-inTrain], reference = plsPredTest))
   }
-  plsPredMissing <- predict(plsFit, newdata = m.dat)
+  plsPredMissing <- predict(plsFit, newdata = data)
   # replace missing values with predicted values
-  
-  
-  df <- rbind(training, testing, m.dat)
-  predVector <- c(plsPredTrain, plsPredTest, plsPredMissing)
-
-  cbind(df, predVector)
-
-  # for (var in imputed) {
-  #   ina <- is.na(dat[var])
-  #   dat[ina, var] <- pred_val[ina]
-  # }
-  
-  ## end of temp function
+  if (replace){
+    idx <- which(colnames(data) == eval(formula)[[2]])
+    data[is.na(data[,idx]),idx] <- plsPredMissing[is.na(data[,idx])]
+    return(data)
+  } else {
+    return(data.frame(data,prediction = plsPredMissing))
+  }
 }
 
