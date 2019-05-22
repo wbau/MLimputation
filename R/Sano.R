@@ -2,7 +2,8 @@ library(caret)
 ##library(simputation)
 
 dat <- iris
-dat[1:3,1]  <- NA
+ind.inp <- 1:3
+dat[ind.inp,1]  <- NA
 set.seed(107)
 
 inTrain <- createDataPartition(
@@ -29,3 +30,12 @@ nnetFit <- train(
   ##tuneLength = 15,
   na.action = na.pass
 )
+
+ans.inp <- iris[ind.inp,1]
+pred.inp <- predict(nnetFit)
+RMSE.inp <- sqrt(mean((pred.inp-ans.inp)^2))
+
+pred.test <- predict(nnetFit, newdata = testing)
+ans.test  <- dat[-inTrain,1]
+RMSE.test <- sqrt(mean((pred.test-ans.test)^2))
+
