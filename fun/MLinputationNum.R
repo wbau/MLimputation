@@ -44,7 +44,7 @@ MLimputation <- function(data,
                                  list = FALSE)
   training <- c.dat[inTrain,]
   testing  <- c.dat[-inTrain,]
-  if (useFitControl == TRUE) {
+  if (useFitControl) {
     fitControl <- trainControl(method = tuningMethod,
                                number = repeat.times,
                                ## repeated ten times

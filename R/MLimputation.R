@@ -27,7 +27,7 @@ data(iris)
 ## Add some (5%) random missing values to the selected param (numeric)
 iris[sample.int(nrow(iris), floor(nrow(iris) * .25)), 1] <- NA
 iris[sample.int(nrow(iris), floor(nrow(iris) * .05)), 5] <- NA
-iris[sample.int(nrow(iris), floor(nrow(iris) * .9)), 2] <- NA
+# iris[sample.int(nrow(iris), floor(nrow(iris) * .9)), 2] <- NA
 
 ## Run imputation fun
 imputedDb <-
