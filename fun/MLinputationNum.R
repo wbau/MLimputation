@@ -4,7 +4,10 @@ MLimputationNum <- function(data,
                             training_size = .8,
                             method = "pls",
                             tuneLength = 15,
-                            replace = T) {
+                            replace = T,
+                            useFitControl = TRUE,
+                            tuningMethod = "boot",
+                            foldRep = ifelse(grepl("[d_]cv$", method), 1, NA))) {
 
   # calculate percentage of missing values
   m.perc <- sum(complete.cases(data)/nrow(data))
@@ -21,14 +24,38 @@ MLimputationNum <- function(data,
                                  list = FALSE)
   training <- c.dat[inTrain, ]
   testing  <- c.dat[-inTrain, ]
+  if (useFitControl==TRUE){
+    fitControl <- trainControl(
+      method = tuningMethod,
+      number = 10,
+      ## repeated ten times
+      repeats = foldRep)
+    
+    plsFit <- train(
+      eval(formula),
+      data = training,
+      method = method,
+      preProc = c("center", "scale"),
+      trControl = fitControl,
+      tuneLength = tuneLength
+    )
+  } else {
+    plsFit <- train(
+      eval(formula),
+      data = training,
+      method = method,
+      preProc = c("center", "scale"),
+      tuneLength = tuneLength
+    )
+  } 
   # fit predictive model
-  plsFit <- train(
-    eval(formula),
-    data = training,
-    method = method,
-    preProc = c("center", "scale"),
-    tuneLength = tuneLength
-  )
+  #plsFit <- train(
+  #  eval(formula),
+  #  data = training,
+  #  method = method,
+  #  preProc = c("center", "scale"),
+  #  tuneLength = tuneLength
+  #)
   # model prediction
   plsPredTrain <- predict(plsFit, newdata = training)
   plsPredTest <- predict(plsFit, newdata = testing)
