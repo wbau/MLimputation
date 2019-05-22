@@ -24,17 +24,19 @@ set.seed(107)
 source(here("fun", "MLinputationNum.R"))
 data(iris)
 
-## Add some (30%) random missing values to the 1st param (numeric)
+## Add some (5%) random missing values to the selected param (numeric)
+iris[sample.int(nrow(iris), floor(nrow(iris) * .25)), 1] <- NA
+iris[sample.int(nrow(iris), floor(nrow(iris) * .05)), 2] <- NA
 iris[sample.int(nrow(iris), floor(nrow(iris) * .05)), 5] <- NA
 
 ## Run imputation fun
 imputedDb <-
   MLimputationNum(
     data = iris,
-    y = iris$Species,
-    formula = Species ~ .,
+    y = iris$Sepal.Length,
+    formula = Sepal.Length ~ .,
     training_size = .8,
-    method = "naive_bayes",
+    method = "pls",
     tuneLength = 15,
     replace = T
   )
