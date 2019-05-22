@@ -32,7 +32,7 @@ nnetFit <- train(
 )
 
 ans.inp <- iris[ind.inp,1]
-pred.inp <- predict(nnetFit)
+pred.inp <- predict(nnetFit)[ind.inp]
 RMSE.inp <- sqrt(mean((pred.inp-ans.inp)^2))
 
 pred.test <- predict(nnetFit, newdata = testing)
