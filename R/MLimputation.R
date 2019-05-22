@@ -25,15 +25,15 @@ source(here("fun", "MLinputationNum.R"))
 data(iris)
 
 ## Add some (30%) random missing values to the 1st param (numeric)
-iris[sample.int(nrow(iris), floor(nrow(iris) * .3)), 1] <- NA
+iris[sample.int(nrow(iris), floor(nrow(iris) * .3)), 5] <- NA
 
 ## Run imputation fun
 imputedDb <-
   MLimputationNum(
     data = iris,
-    y = iris$Sepal.Length,
-    formula = Sepal.Length ~ .,
+    y = iris$Species,
+    formula = Species ~ .,
     training_size = .8,
-    method = "pls",
+    method = "naive_bayes",
     tuneLength = 15
   )

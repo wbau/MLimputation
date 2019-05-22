@@ -5,13 +5,6 @@ MLimputationNum <- function(data,
                             method = "pls",
                             tuneLength = 15) {
   
-  # get outcome variable as column number
-  if(is.null(y))
-    return(data)
-  if(is.character(y))
-    y <- data[ ,which(colnames(data)==y)]
-  if (length(y) != nrow(data)) 
-    warning("Number of outcome vector values is not equal to number of rows in data.")
   # calculate percentage of missing values
   m.perc <- sum(complete.cases(data)/nrow(data))
   # display worning if over some limit?
@@ -36,12 +29,18 @@ MLimputationNum <- function(data,
     tuneLength = tuneLength
   )
   # model prediction
-  plsPredTrain <- predict(plsFit, newdata = NULL)
+  plsPredTrain <- predict(plsFit, newdata = training)
   plsPredTest <- predict(plsFit, newdata = testing)
   # collect metrics
-  # (...)
+  if (is.numeric(y)){
+    print(postResample(pred = plsPredTest, obs = y[!missing.idx][-inTrain]))
+  } else {
+    print(confusionMatrix(data = y[!missing.idx][-inTrain], reference = plsPredTest))
+  }
   plsPredMissing <- predict(plsFit, newdata = m.dat)
-  # Merge datasets
+  # replace missing values with predicted values
+  
+  
   df <- rbind(training, testing, m.dat)
   predVector <- c(plsPredTrain, plsPredTest, plsPredMissing)
 
