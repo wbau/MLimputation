@@ -34,5 +34,6 @@ imputedDb <-
     y = iris$Sepal.Length,
     formula = Sepal.Length ~ .,
     training_size = .8,
-    im.method = "pls"
+    method = "pls",
+    tuneLength = 15
   )

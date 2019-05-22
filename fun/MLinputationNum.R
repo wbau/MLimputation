@@ -2,17 +2,22 @@ MLimputationNum <- function(data,
                             y,
                             formula,
                             training_size = .8,
-                            im.method = "pls") {
+                            method = "pls",
+                            tuneLength = 15) {
   
   # get outcome variable as column number
+  if(is.null(y))
+    return(data)
   if(is.character(y))
     y <- data[ ,which(colnames(data)==y)]
+  if (length(y) != nrow(data)) 
+    warning("Number of outcome vector values is not equal to number of rows in data.")
   # calculate percentage of missing values
   m.perc <- sum(complete.cases(data)/nrow(data))
   # display worning if over some limit?
-  paste0(m.perc*100,"% of outcome variable is missing!")
+  warning(paste0(m.perc*100,"% of outcome variable is missing!"))
   # get missing values index
-  missing.idx <- is.na(y.vector)
+  missing.idx <- is.na(y)
   # split into missing and complete cases
   c.dat <- iris[!missing.idx, ]
   m.dat <- iris[missing.idx, ]
@@ -26,22 +31,53 @@ MLimputationNum <- function(data,
   plsFit <- train(
     eval(formula),
     data = training,
-    method = im.method,
+    method = method,
     preProc = c("center", "scale"),
-    tuneLength = 15
+    tuneLength = tuneLength
   )
   # predict
   plsPredTrain <- predict(plsFit, newdata = NULL)
   plsPredTest <- predict(plsFit, newdata = testing)
   # collect metrics
   # (...)
-  # end of Part No.1
-  ## Part No.2 - impute data
   plsPredMissing <- predict(plsFit, newdata = m.dat)
   ## Merge datasets
   df <- rbind(training, testing, m.dat)
   predVector <- c(plsPredTrain, plsPredTest, plsPredMissing)
-  df <- cbind(df, predVector)
+  
+  cbind(df, predVector)
   ## end of temp function
-  return(df)
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+function (dat, formula, predictor = foretell, ...) 
+{
+  model <- eval(formula[[3]])
+  imputed <- get_imputed(formula, dat)
+  args <- list(object = model, newdata = dat, ...)
+  pred_val <- tryCatch(do.call(predictor, args), error = function(e) {
+    warnf("Could not compute predictions:\n%s\nReturning original data.", 
+          e$message)
+    NULL
+  })
+  if (is.null(pred_val)) 
+    return(dat)
+  if (length(pred_val) != nrow(dat)) 
+    warnf("Numberof values returned by the predictor is not equal to number of rows in data")
+  for (var in imputed) {
+    ina <- is.na(dat[var])
+    dat[ina, var] <- pred_val[ina]
+  }
+  dat
 }
