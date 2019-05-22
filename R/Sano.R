@@ -1,10 +1,12 @@
 library(caret)
 ##library(simputation)
+set.seed(107)
 
 dat <- iris
 ind.inp <- 1:3
+ans.inp <- iris[ind.inp,1]
 dat[ind.inp,1]  <- NA
-set.seed(107)
+
 
 inTrain <- createDataPartition(
   y = dat$Sepal.Length[is.na(dat$Sepal.Length)==F],
@@ -18,6 +20,11 @@ inTrain <- createDataPartition(
 training <- dat[ inTrain,]
 testing  <- dat[-inTrain,]
 
+
+
+Wrapper.inp.nnet <-function(training){
+ind.inp <- which(is.na(training[,1]))  
+  
 nnetFit <- train(
   Sepal.Length ~ .,
   data = training,
@@ -31,11 +38,20 @@ nnetFit <- train(
   na.action = na.pass
 )
 
-ans.inp <- iris[ind.inp,1]
-pred.inp <- predict(nnetFit)[ind.inp]
-RMSE.inp <- sqrt(mean((pred.inp-ans.inp)^2))
+pred.inp <- predict(nnetFit)[ind.inp]  
+out <- list(ind.inp,pred.inp,nnetFit)
+names(out) <- c("ind.inp","pred.inp","nnetFit")
+return(out)
+}
 
-pred.test <- predict(nnetFit, newdata = testing)
-ans.test  <- dat[-inTrain,1]
-RMSE.test <- sqrt(mean((pred.test-ans.test)^2))
+Wrapper.inp.perform <- function(ans.inp,inp.val){
+  RMSE.inp <- sqrt(mean((pred.inp-ans.inp)^2))
+  return(RMSE)
+}
 
+Wrapper.test.perform <- function(nnetFit,testing){
+  pred.test <- predict(nnetFit, newdata = testing)
+  ans.test  <- dat[-inTrain,1]  
+  RMSE.test <- sqrt(mean((pred.test-ans.test)^2))
+  return(RMSE.test)
+}
