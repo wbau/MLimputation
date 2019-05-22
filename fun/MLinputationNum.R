@@ -50,7 +50,7 @@ MLimputation <- function(data,
                                ## repeated ten times
                                repeats = foldRep)
     
-    plsFit <- train(
+    predictionModel <- train(
       eval(formula),
       data = training,
       method = method,
@@ -59,32 +59,32 @@ MLimputation <- function(data,
       tuneLength = tuneLength
     )
   } else {
-    plsFit <- train(
+    predictionModel <- train(
       eval(formula),
       data = training,
       method = method,
       preProc = c("center", "scale"),
-      tuneLength = tuneLength
+      tuneLength = tuneLength,
+      metric = "ROC"
     )
   }
   # model prediction
-  plsPredTrain <- predict(plsFit, newdata = training)
-  plsPredTest <- predict(plsFit, newdata = testing)
+  predictionTesting <- predict(predictionModel, newdata = testing)
   # collect metrics
   if (is.numeric(y)) {
-    print(postResample(pred = plsPredTest, obs = y[!missing.idx][-inTrain]))
+    print(postResample(pred = predictionTesting, obs = y[!missing.idx][-inTrain]))
   } else {
-    print(confusionMatrix(data = y[!missing.idx][-inTrain], reference = plsPredTest))
+    print(confusionMatrix(data = y[!missing.idx][-inTrain], reference = predictionTesting))
   }
-  plsPredMissing <- predict(plsFit, newdata = data)
+  imputedData <- predict(predictionModel, newdata = data)
   # replace missing values with predicted values
   if (replace) {
     idx <- which(colnames(data) == formula[[2]])
     data[is.na(data[, idx]), idx] <-
-      plsPredMissing[is.na(data[, idx])]
+      imputedData[is.na(data[, idx])]
     return(data)
   } else {
-    return(data.frame(data, prediction = plsPredMissing))
+    return(data.frame(data, prediction = imputedData))
   }
   
 }
