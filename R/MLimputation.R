@@ -31,10 +31,10 @@ iris[sample.int(nrow(iris), floor(nrow(iris) * .9)), 2] <- NA
 
 ## Run imputation fun
 imputedDb <-
-  MLimputationNum(
+  MLimputation(
     data = iris,
     y = iris$Sepal.Length,
-    formula = Sepal.Length ~ .,
-    method = "pls",
+    formula = Sepal.Length ~ Sepal.Width.,
+    method = "rlm",
     replace = T
   )

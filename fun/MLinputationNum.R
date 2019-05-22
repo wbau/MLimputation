@@ -1,4 +1,4 @@
-MLimputationNum <- function(data,
+MLimputation <- function(data,
                             y,
                             formula,
                             training_size = .8,
