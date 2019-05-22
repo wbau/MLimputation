@@ -15,82 +15,24 @@ ipak <- function(pkg) {
 }
 
 ## This will install all the libraries:
-ipak("caret")
-
-
+ipak(c("caret", "mlbench", "here"))
 
 ## A short introduction to caret (...)
-library(caret)
-library(mlbench)
-data(Sonar)
-
 set.seed(107)
-inTrain <- createDataPartition(
-  y = Sonar$Class,
-  ## the outcome data are needed
-  p = .75,
-  ## The percentage of data in the
-  ## training set
-  list = FALSE
-)
-## The format of the results
 
-## The output is a set of integers for the rows of Sonar
-## that belong in the training set.
-str(inTrain)
+## Load example datatset and functions
+source(here("fun", "MLinputationNum.R"))
+data(iris)
 
-training <- Sonar[ inTrain,]
-testing  <- Sonar[-inTrain,]
+## Add some (30%) random missing values to the 1st param (numeric)
+iris[sample.int(nrow(iris), floor(nrow(iris) * .3)), 1] <- NA
 
-nrow(training)
-nrow(testing)
-
-ctrl <- trainControl(
-  method = "repeatedcv", 
-  repeats = 3,
-  classProbs = TRUE, 
-  summaryFunction = twoClassSummary
-)
-
-set.seed(123)
-plsFit <- train(
-  Class ~ .,
-  data = training,
-  method = "rpart",
-  preProc = c("center", "scale"),
-  tuneLength = 15,
-  trControl = ctrl,
-  metric = "ROC"
-)
-plsFit
-
-ggplot(plsFit)
-
-
-plsClasses <- predict(plsFit, newdata = testing)
-str(plsClasses)
-#>  Factor w/ 2 levels "M","R": 2 1 1 2 1 2 2 2 2 2 ...
-plsProbs <- predict(plsFit, newdata = testing, type = "prob")
-head(plsProbs)
-
-confusionMatrix(data = plsClasses, testing$Class)
-
-
-
-
-
-
-
-
-
-## Examples
-library("simputation")
-irisNA <- iris
-iris[1:3,1] <- NA
-my_model <- lm(Sepal.Length ~ Sepal.Width + Species, data=iris)
-impute(irisNA, Sepal.Length ~ my_model)
-
-
-
-
-
+## Run imputation fun
+imputedDb <-
+  MLimputationNum(
+    data = iris,
+    y = iris$Sepal.Length,
+    formula = Sepal.Length ~ .,
+    training_size = .8,
+    im.method = "pls"
+  )
