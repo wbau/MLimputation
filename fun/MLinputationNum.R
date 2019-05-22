@@ -4,7 +4,11 @@ MLimputationNum <- function(data,
                             training_size = .8,
                             method = "pls",
                             tuneLength = 15,
-                            replace = T) {
+                            replace = T,
+                            useFitControl = TRUE,
+                            tuningMethod = "boot",
+                            repeat.times = 10,
+                            foldRep = ifelse(grepl("[d_]cv$", method), 1, NA)) {
   # calculate percentage of missing values
   m.perc <- sum(complete.cases(y) / length(y))
   # display worning if over some limit?
@@ -21,10 +25,10 @@ MLimputationNum <- function(data,
           colnames(data)[column.id],
           " from the predictive model formula."
         )
-        )
+      )
     } else {
-      keep.column <- c(keep.column,colnames(data)[column.id])
-      }
+      keep.column <- c(keep.column, colnames(data)[column.id])
+    }
   }
   formula <-
     as.formula(paste0(formula[[2]], "~", paste(keep.column, collapse = "+")))
@@ -32,22 +36,37 @@ MLimputationNum <- function(data,
   # get missing values index
   missing.idx <- is.na(y)
   # split into missing and complete cases
-  c.dat <- data[!missing.idx,]
-  m.dat <- data[missing.idx,]
+  c.dat <- data[!missing.idx, ]
+  m.dat <- data[missing.idx, ]
   # create data partition
   inTrain <- createDataPartition(y = y[!missing.idx],
                                  p = training_size,
                                  list = FALSE)
   training <- c.dat[inTrain,]
   testing  <- c.dat[-inTrain,]
-  # fit predictive model
-  plsFit <- train(
-    eval(formula),
-    data = training,
-    method = method,
-    preProc = c("center", "scale"),
-    tuneLength = tuneLength
-  )
+  if (useFitControl == TRUE) {
+    fitControl <- trainControl(method = tuningMethod,
+                               number = repeat.times,
+                               ## repeated ten times
+                               repeats = foldRep)
+    
+    plsFit <- train(
+      eval(formula),
+      data = training,
+      method = method,
+      preProc = c("center", "scale"),
+      trControl = fitControl,
+      tuneLength = tuneLength
+    )
+  } else {
+    plsFit <- train(
+      eval(formula),
+      data = training,
+      method = method,
+      preProc = c("center", "scale"),
+      tuneLength = tuneLength
+    )
+  }
   # model prediction
   plsPredTrain <- predict(plsFit, newdata = training)
   plsPredTest <- predict(plsFit, newdata = testing)
