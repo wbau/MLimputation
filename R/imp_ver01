@@ -1,0 +1,38 @@
+library(caret)
+library(simputation)
+
+dat <- iris
+dat[1:3,1]  <- NA
+head(dat,10)
+
+
+set.seed(107)
+inTrain <- createDataPartition(
+  y = dat$Sepal.Length[is.na(dat$Sepal.Length)==F],
+  ## the outcome data are needed
+  p = .75,
+  ## The percentage of data in the
+  ## training set
+  list = FALSE
+)
+
+training <- dat[ inTrain,]
+testing  <- dat[-inTrain,]
+
+plsFit <- train(
+  Sepal.Length ~ .,
+  data = training,
+  method = "C5.0",
+  ## Center and scale the predictors for the training
+  ## set and all future samples.
+  preProc = c("center", "scale"), 
+  tuneLength = 15,
+  na.action = na.pass
+)
+
+table(dat$Sepal.Length, useNA = "always")
+
+dat$Sepal.Length_imp <- predict(plsFit, newdata = dat)
+
+head(dat)
+
