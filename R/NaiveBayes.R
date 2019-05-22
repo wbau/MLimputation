@@ -13,9 +13,12 @@ install.packages("caret"); library("caret")
 # the package for Naive Bayes
 library("klaR")
 library("e1071")
+# for kappa coefficients
+install.packages("irr");library("irr")
 
 # data with rackings
 dat <- iris
+dat_r <- dat
 dat[c(1,56,100),5] <- NA; dat[1:100,]
 
 ####
@@ -25,6 +28,15 @@ a<-5
 exp <- dat[,-a]
 rsp <- dat[, a]
 
-model <- train(x,y,'nb',trControl=trainControl(method='cv',number=10))
+model <- train(x,y,'nb',
+               trControl=trainControl(method='cv',number=10),
+               metric = "Kappa")
 res<- predict(model$finalModel,exp)
-dat[,a]<-res$class
+dat[,a][ which(is.na(dat[,a])) ] <- res$class[ which(is.na(dat[,a])) ]
+
+
+###
+#the correct rate
+kappa2( cbind(dat[,a],dat_r[,a]) )
+
+#######################
