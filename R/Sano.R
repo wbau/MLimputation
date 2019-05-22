@@ -55,3 +55,7 @@ Wrapper.test.perform <- function(nnetFit,testing){
   RMSE.test <- sqrt(mean((pred.test-ans.test)^2))
   return(RMSE.test)
 }
+
+out.inp <- Wrapper.inp.nnet(training)
+Wrapper.inp.perform(ans.inp,out.inp[[2]])
+Wrapper.test.perform(out.inp[[3]],testing)
