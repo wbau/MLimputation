@@ -28,7 +28,7 @@ return(out)
 
 Wrapper.inp.perform <- function(ans.inp,inp.val){
   RMSE.inp <- sqrt(mean((inp.val-ans.inp)^2))
-  return(RMSE)
+  return(RMSE.inp)
 }
 
 Wrapper.test.perform <- function(nnetFit,testing){
@@ -38,7 +38,7 @@ Wrapper.test.perform <- function(nnetFit,testing){
   return(RMSE.test)
 }
 
-
+# Start
 dat <- iris
 
 inTrain <- createDataPartition(
@@ -49,6 +49,8 @@ inTrain <- createDataPartition(
   ## training set
   list = FALSE
 )
+
+
 
 ind.inp <- 1:3
 ans.inp <- iris[ind.inp,1]
