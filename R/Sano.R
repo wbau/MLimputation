@@ -2,24 +2,6 @@ library(caret)
 ##library(simputation)
 set.seed(107)
 
-dat <- iris
-ind.inp <- 1:3
-ans.inp <- iris[ind.inp,1]
-dat[ind.inp,1]  <- NA
-
-
-inTrain <- createDataPartition(
-  y = dat$Sepal.Length[is.na(dat$Sepal.Length)==F],
-  ## the outcome data are needed
-  p = .75,
-  ## The percentage of data in the
-  ## training set
-  list = FALSE
-)
-
-training <- dat[ inTrain,]
-testing  <- dat[-inTrain,]
-
 
 
 Wrapper.inp.nnet <-function(training){
@@ -45,7 +27,7 @@ return(out)
 }
 
 Wrapper.inp.perform <- function(ans.inp,inp.val){
-  RMSE.inp <- sqrt(mean((pred.inp-ans.inp)^2))
+  RMSE.inp <- sqrt(mean((inp.val-ans.inp)^2))
   return(RMSE)
 }
 
@@ -55,6 +37,24 @@ Wrapper.test.perform <- function(nnetFit,testing){
   RMSE.test <- sqrt(mean((pred.test-ans.test)^2))
   return(RMSE.test)
 }
+
+
+dat <- iris
+
+inTrain <- createDataPartition(
+  y = dat$Sepal.Length[is.na(dat$Sepal.Length)==F],
+  ## the outcome data are needed
+  p = .75,
+  ## The percentage of data in the
+  ## training set
+  list = FALSE
+)
+
+ind.inp <- 1:3
+ans.inp <- iris[ind.inp,1]
+dat[ind.inp,1]  <- NA
+training <- dat[ inTrain,]
+testing  <- dat[-inTrain,]
 
 out.inp <- Wrapper.inp.nnet(training)
 Wrapper.inp.perform(ans.inp,out.inp[[2]])
