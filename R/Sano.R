@@ -4,18 +4,20 @@ set.seed(107)
 
 
 
-Wrapper.inp.nnet <-function(training){
-ind.inp <- which(is.na(training[,1]))  
+Wrapper.inp.nnet <-function(training,ind.val){
+flag.cont <- !is.factor(training[,ind.val])   
+ind.inp <- which(is.na(training[,ind.val]))  
   
 nnetFit <- train(
-  Sepal.Length ~ .,
+  eval(parse(text=paste0(colnames(training)[ind.val],"~."))),
+  ##Sepal.Length ~ .,
   data = training,
   method = "nnet",
   ## Center and scale the predictors for the training
   ## set and all future samples.
   preProc = c("center", "scale"), 
-  tuneGrid = expand.grid(size=c(1:10), decay=seq(0.1, 1, 0.1)),
-  linout = TRUE,
+  tuneGrid = expand.grid(size=c(5:6), decay=seq(0.1, 1, 0.1)),
+  linout = flag.cont,
   ##tuneLength = 15,
   na.action = na.pass
 )
@@ -26,16 +28,25 @@ names(out) <- c("ind.inp","pred.inp","nnetFit")
 return(out)
 }
 
-Wrapper.inp.perform <- function(ans.inp,inp.val){
-  RMSE.inp <- sqrt(mean((inp.val-ans.inp)^2))
-  return(RMSE.inp)
+Wrapper.inp.perform <- function(ans.inp,inp.val,categ){
+  if(categ==T) {perform <- sum(ans.inp==inp.val)/length(ans.inp)
+                measure <- "accuracy"}
+  else   {perform <- sqrt(mean((inp.val-ans.inp)^2))
+          measure <- "RMSE"}
+  out <- c(measure,perform)
+  return(out)
 }
 
-Wrapper.test.perform <- function(nnetFit,testing){
+Wrapper.test.perform <- function(nnetFit,testing,ind.val){
+  categ <- is.factor(testing[,ind.val])
   pred.test <- predict(nnetFit, newdata = testing)
-  ans.test  <- dat[-inTrain,1]  
-  RMSE.test <- sqrt(mean((pred.test-ans.test)^2))
-  return(RMSE.test)
+  ans.test  <- dat[-inTrain,ind.val]
+  if (categ ==T) {perform <- sum(pred.test==ans.test)/length(ans.test)
+                  measure <- "accuracy"}
+  else  {perform <- sqrt(mean((pred.test-ans.test)^2))
+         measure <- "RMSE"}
+  out <- c(measure, perform)
+  return(out)
 }
 
 # Start
@@ -51,13 +62,16 @@ inTrain <- createDataPartition(
 )
 
 
+N.NA <- 10
+ind.inp <- sample(nrow(dat),N.NA)
+ind.val <- 5
+categ <- is.factor(dat[,ind.val])
 
-ind.inp <- 1:3
-ans.inp <- iris[ind.inp,1]
-dat[ind.inp,1]  <- NA
+ans.inp <- iris[ind.inp,ind.val]
+dat[ind.inp,ind.val]  <- NA
 training <- dat[ inTrain,]
 testing  <- dat[-inTrain,]
 
-out.inp <- Wrapper.inp.nnet(training)
-Wrapper.inp.perform(ans.inp,out.inp[[2]])
-Wrapper.test.perform(out.inp[[3]],testing)
+out.inp <- Wrapper.inp.nnet(training,ind.val)
+Wrapper.inp.perform(ans.inp,out.inp[[2]],categ)
+Wrapper.test.perform(out.inp[[3]],testing,ind.val)
